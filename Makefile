@@ -51,7 +51,7 @@ release: main
 	@ cd perl/doc; pdflatex scmplusUserguide.tex >/dev/null; pdflatex scmplusUserguide.tex >/dev/null
 	@ $(foreach file, $(PERLSCRIPTS), cp perl/bin/$(file)  PsNplus/bin/.;)
 	@ $(foreach file, $(LIBFILES), cp -L perl/lib/$(file) PsNplus/lib/.;)
-	@ cp perl/README.txt PsNplus/README_version_$(VERSION).txt
+	@ cp README.md PsNplus/README_version_$(VERSION).md
 	@ cp $(PSNPLUSPDFFILES) PsNplus/doc/.
 	@ cd PsNplus; tar --owner=0 --group=0 -cvzf ../releasePsNplus/PsNplus.tar.gz .
 	@ mv releasePsNplus/PsNplus.tar.gz releasePsNplus/PsNplus-$(VERSION).tar.gz
