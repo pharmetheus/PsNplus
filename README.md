@@ -15,7 +15,7 @@ PsNplus officially supports only Linux. Mac and Windows may work, but are not te
 4. - If you choose dynamic detection of PsN library, you are done.
    - If you instead choose the static (faster) method, open file PsN_library.pm in the lib subdirectory and set
 ```   
-my $useStaticPsNversion = 0;
+my $useStaticPsNversion = 1;
 ```
 and
 ```
