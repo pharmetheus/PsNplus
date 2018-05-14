@@ -10,7 +10,7 @@ as published by the Free Software Foundation, either version 2 of the License, o
 PsNplus officially supports only Linux. Mac and Windows may work, but are not tested.
 
 1. PsN version 4.7.0 or later must be installed and tested and in your path before installation of PsNplus. 
-2. Download the [zipped release file](./releases) and unpack it in a suitable location.
+2. Download the [zipped release file](https://github.com/pharmetheus/PsNplus/releases/) and unpack it in a suitable location.
 3. Add the bin sub-directory to your path.
 
 ### Optional
