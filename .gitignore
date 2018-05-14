@@ -1,0 +1,71 @@
+## emacs temp files
+*~
+
+perl/doc/*.log
+## Exclude release dir for PsNplus
+PsNplus/
+
+## R related files
+.Rproj.user
+*.Rproj
+.Rhistory
+*.RData
+
+## Knitr related files
+cache/
+#figure/
+knitr.sty
+
+## Mac related file
+[Tt]humbs.db
+.DS_Store
+
+## Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.lot
+*.fls
+*.out
+*.toc
+*.loa
+
+## Bibliography auxiliary files (bibtex/biblatex/biber):
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+## Build tool auxiliary files:
+*.fdb_latexmk
+*.synctex.gz
+*.pdfsync
+
+## glossaries
+*.acn
+*.acr
+*.glg
+*.glo
+*.gls
+
+## Office Temp Files
+~$*
+._*
+.TMP
+
+## Windows EFS error files
+EFS*.TMP
+
+## Temporary directories
+tmp/
+
+
+##Pirana folders
+pirana_backup
+pirana_reports
+pirana_temp
+pirana_dir
+
+## Pirana files
+.git_ini
