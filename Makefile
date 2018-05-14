@@ -53,11 +53,13 @@ release: main
 	@ $(foreach file, $(LIBFILES), cp -L perl/lib/$(file) PsNplus/lib/.;)
 	@ cp perl/README.txt PsNplus/README_version_$(VERSION).txt
 	@ cp $(PSNPLUSPDFFILES) PsNplus/doc/.
+	@ cd PsNplus; tar --owner=0 --group=0 -cvzf ../releasePsNplus/PsNplus.tar.gz .
+	@ mv releasePsNplus/PsNplus.tar.gz releasePsNplus/PsNplus-$(VERSION).tar.gz
+	@ git add releasePsNplus/PsNplus-$(VERSION).tar.gz
+	@ git commit -m "new release"
 	@ git tag $(NEWTAG) 
 	@ git push
 	@ git push --tags
-	@ cd PsNplus; tar --owner=0 --group=0 -cvzf ../releasePsNplus/PsNplus.tar.gz .
-	@ mv releasePsNplus/PsNplus.tar.gz releasePsNplus/PsNplus-$(VERSION).tar.gz
 	@ cd releasePsNplus; syncpmx putall --mirror
 
 rel_dir:
