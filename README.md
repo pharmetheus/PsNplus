@@ -9,11 +9,14 @@ as published by the Free Software Foundation, either version 2 of the License, o
 ## Installation
 PsNplus officially supports only Linux. Mac and Windows may work, but are not tested.
 
-1. PsN version 4.7.0 or later must be installed and tested before installation of PsNplus. If you choose dynamic detection of PsN library, PsN must also be in your path.
-2. Download the zipped tar-ball of the release and unpack it in a suitable location.
-3. Add the bin sub-directory to your path. 
-4. - If you choose dynamic detection of PsN library, you are done.
-   - If you instead choose the static (faster) method, open file PsN_library.pm in the lib subdirectory and set
+1. PsN version 4.7.0 or later must be installed and tested and in your path before installation of PsNplus. 
+2. Download the [zipped release file](./releases) and unpack it in a suitable location.
+3. Add the bin sub-directory to your path.
+
+### Optional
+By default, PsNplus will dynamically detect where the library files of the default PsN installation are found. This
+adds a bit of startup time to all runs.
+If you instead want the static and faster method, open file PsN_library.pm in the lib subdirectory and set
 ```   
 my $useStaticPsNversion = 1;
 ```
@@ -21,5 +24,7 @@ and
 ```
 $psnlib = "/path/to/existing/psn/lib/directory";
 ```
+When you use the static method, PsN does not have to be in your path.
 
+## Run information
 The version number of PsNplus and the full path to the executed script is printed in version_and_option_info.txt of each run directory, together with the version number of the PsN library used. File meta.yaml does not contain the PsNplus information.

@@ -19,7 +19,7 @@ PSNPLUSPDFFILES=$(PSNPLUSTEXFILES:.tex=.pdf)
 
 VERSION=`sed -n 's/.*\$version\s*=\s*.\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).;/\1/p' perl/lib/PsNplus.pm`
 
-OLDVERSION=`sed -n 's/.*\$version\s*=\s*.\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).;/\1/p' PsNplus/lib/PsNplus.pm`
+OLDVERSION=`sed -n 's/\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)/\1/p' perl/version.txt`
 
 NEWTAG=version_$(VERSION)
 
@@ -40,9 +40,10 @@ doc: $(PSNPLUSPDFFILES)
 
 release: main
 	@ if [ "$(USER)" = "kajsa" ]; then echo user ok; true; else echo "Only for kajsa"; exit 2; fi;
-	@ if [ -e "PsNplus/lib/PsNplus.pm" ]; then echo PsNplus ok; else echo PsNplus missing; exit 2; fi; 
+	@ if [ -e "perl/version.txt" ]; then echo PsNplus version ok; else echo PsNplus version missing; exit 2; fi; 
 	@ if [ "$(OLDVERSION)" = "$(VERSION)" ]; then echo "Old and new version identical $(VERSION)"; exit 2; else echo "version $(OLDVERSION) to $(VERSION)"; true; fi;
 	@ if [ `git diff --name-only | wc -l` -gt 0 ]; then echo "Uncommited changes"; exit 2; else true; fi
+	@ rm -f perl/version.txt
 	@ rm -f PsNplus/lib/*.pm
 	@ rm -f PsNplus/doc/*.pdf
 	@ rm -f PsNplus/README*
@@ -55,7 +56,8 @@ release: main
 	@ cp $(PSNPLUSPDFFILES) PsNplus/doc/.
 	@ cd PsNplus; tar --owner=0 --group=0 -cvzf ../releasePsNplus/PsNplus.tar.gz .
 	@ mv releasePsNplus/PsNplus.tar.gz releasePsNplus/PsNplus-$(VERSION).tar.gz
-	@ git add releasePsNplus/PsNplus-$(VERSION).tar.gz
+	@ echo "$(VERSION)" > perl/version.txt
+	@ git add perl/version.txt
 	@ git commit -m "new release"
 	@ git tag $(NEWTAG) 
 	@ git push

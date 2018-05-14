@@ -5,6 +5,7 @@ perl/doc/*.log
 perl/doc/*.pdf
 ## Exclude release dir for PsNplus
 PsNplus/
+releasePsNplus/
 
 #internal symlink
 perl/lib/scm_util.pm
