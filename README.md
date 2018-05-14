@@ -11,12 +11,12 @@ PsNplus officially supports only Linux. Mac and Windows may work, but are not te
 
 1. PsN version 4.7.0 or later must be installed and tested and in your path before installation of PsNplus. 
 2. Download the [zipped release file](https://github.com/pharmetheus/PsNplus/releases/) and unpack it in a suitable location.
-3. Add the bin sub-directory to your path.
+3. Add the perl/bin sub-directory to your path.
 
-### Optional
+### Optional installation step
 By default, PsNplus will dynamically detect where the library files of the default PsN installation are found. This
 adds a bit of startup time to all runs.
-If you instead want the static and faster method, open file PsN_library.pm in the lib subdirectory and set
+If you instead want the static and faster method, open file PsN_library.pm in the perl/lib subdirectory and set
 ```   
 my $useStaticPsNversion = 1;
 ```
