@@ -2,6 +2,7 @@
 *~
 
 perl/doc/*.log
+perl/doc/*.pdf
 ## Exclude release dir for PsNplus
 PsNplus/
 

@@ -60,7 +60,7 @@ release: main
 	@ git tag $(NEWTAG) 
 	@ git push
 	@ git push --tags
-	@ cd releasePsNplus; syncpmx putall --mirror
+	@ cd releasePsNplus; syncpmx putall --mirror --syncdir /PMX/Projects/Pharmetheus/PMX-SCM-PMX-1/releasePsNplus
 
 rel_dir:
 	@mkdir -p $(sort $(dir $(RELFILES)))
