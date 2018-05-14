@@ -5,6 +5,9 @@ perl/doc/*.log
 ## Exclude release dir for PsNplus
 PsNplus/
 
+#internal symlink
+perl/lib/scm_util.pm
+
 ## R related files
 .Rproj.user
 *.Rproj
