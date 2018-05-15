@@ -14,10 +14,10 @@
 %%% Project information
 %\projectsubtitle{}
 \reference{PMX-SCM-PMX-1}
-\documentversion{1}
+\documentversion{1.0.0}
 \documentdate{\today}
 \confidential{Confidential}
-\documenttype{Software Specification}
+\documenttype{User documentation}
 \projecttitle{scmplus}
 \shortprojecttitle{scmplus} 
 \documentreference{scmplus}
@@ -38,19 +38,67 @@ The scmplus program is a version of the scm script that reduces the number of ti
 that insignificant parameter-covariate relations are retested. The insignificant runs are often
 the most unstable and difficult to estimate, and they take a considerable amount of computing time.
 The method used is called Adaptive Scope Reduction.
-In one or more forward steps, the parameter-covariate relations that are insignificant relative to
-the chosen p-value cutoff are removed from the set of relations that are tested in the following steps.
-The removed, or stashed, relations are then optionally retested after the reduced scope scm forward
-search has terminated.
-The scmplus program depends on the scm tool of PsN, and all scm options apply also to scmplus.
+
+\subsection{Overview of basic scm algorithm}
+
+The basic scm algorithm proceeds in a Forward inclusion phase and a
+Backward elimination phase. In the forward phase each parameter-covariate (par-cov) combination 
+in the scope are tested one
+at a time. The par-cov that yields the largest drop in OFV, provided it is
+significant, is retained in the model. The remaining par-cov are then
+tested again in the updated model and the one with the largest drop in
+OFV (assuming significance) is retained. This stepwise inclusion
+proceeds until no more significant par-cov can be identified. The
+Backward elimination removes par-cov from the Forward model in a
+stepwise fashion at a stricter significance level. Once all remaining par-cov 
+are significant, the final model has been established.
+
+
+\subsection{Summary of improvements in scmplus}
+The scmplus algorithm increases the efficiency of the legacy scm
+algorithm through the following changes:
+\subsubsection{Adaptive scope reduction} 
+Parameter-covariate relations that have
+not shown promise in early steps are not tested in later steps. However,
+before proceeding to the backward elimination phase, the 
+parameter-covariate relations are re-tested. 
+
+Specifically, after each step
+set with scmplus option -scope\_reduction\_steps, scmplus will stash all relations that are insignificant
+according to option -p\_cutoff. Option -keep\_local\_min can be used to further control which relations
+are stashed.
+When the reduced scope forward search is finished, either because all relations have been included or
+because no more relations are significant, scmplus will retest the stashed relations provided that option
+-retest\_stashed\_relations is set. If any of the retested relations is found to be significant,
+the forward inclusion phase will proceed as with the regular scm.
+
+\subsubsection{Limit the number of function evaluations}
+To avoid excessive
+iterations without improvement in OFV, the max no of function
+evaluations are limited (default to 1.2 times the function evaluations
+used in the base model). This feature is invoked with option -maxevals.
+\subsubsection{Only run NONMEM estimation step}
+By default, scmplus will drop \$COVARIANCE and \$TABLE from the model.
+Options -keep\_covariance and -keep\_tables can be used to turn off this feature.
+\subsubsection{Alternative termination criteria}
+Since the scm is only concerned with
+changes in OFV, the CTYPE=4 criteria is used instead of the default.
+This feature is invoked with option -ctype4.
+\subsubsection{Appropriate numerical settings}
+With ADVAN 6, 8, 9 and 13, scmplus requires SIGL to be set.
+This feature can be turned off with option -ignore\_no\_sigl.
+
+
+\section{Input and options}
+
+The scmplus program depends on the scm tool of PsN, and all scm options apply also to scmplus,
+with the exception of -linearize.
 Please refer to scm\_userguide.pdf for help on scm options.
 
 Example:
 \begin{verbatim}
 scmplus run101.scm -scope_reduction_steps=1,2,3 -p_cutoff=0.05
 \end{verbatim}
-
-\section{Input and options}
 
 \subsection{Required input}
 An scm configuration file is required on the command-line. The format of the configuration file follows the format of 

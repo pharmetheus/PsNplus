@@ -57,7 +57,7 @@ release: main
 	@ cd PsNplus; tar --owner=0 --group=0 -cvzf ../releasePsNplus/PsNplus.tar.gz .
 	@ mv releasePsNplus/PsNplus.tar.gz releasePsNplus/PsNplus-$(VERSION).tar.gz
 	@ echo "$(VERSION)" > perl/version.txt
-	@ git add perl/version.txt
+	@ git add perl/version.txt perl/doc/scmplusUserguide.pdf
 	@ git commit -m "new release"
 	@ git tag $(NEWTAG) 
 	@ git push
