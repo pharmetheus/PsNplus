@@ -300,8 +300,9 @@ sub _parse_candidate
 	}else{
 		$res{'failed'} = 0;
 		if (($self->is_pval and ($res{'PVAL'} == 9999 or $res{'PVAL'} == 999)) or
-			((not $self->is_pval) and (($res{'TEST OFV (DROP)'}> 0 and ( $res{'NEW OFV'} > $res{'BASE OFV'} ))
-									   or ($res{'TEST OFV (DROP)'} < 0 and ( $res{'NEW OFV'} < $res{'BASE OFV'} ))))
+			((not $self->is_pval) and (($self->is_forward and ($res{'TEST OFV (DROP)'}< 0))
+									   or ((not $self->is_forward) and ($res{'TEST OFV (DROP)'} > 0))
+			 ))
 			)  {
 			$res{'local_min'} = 1;
 		}else{
