@@ -11,12 +11,14 @@ use Getopt::Long;
 sub usage
 {
     my $name = 'monitor';
-	print("$name: Continuous monitoring of a currently running PsN script\n");
+	print("$name: Continuous monitoring of an active scm or scmplus run\n");
     print("\nUsage:\n$name pathToPsNrunDirectory\n");
 	print("Options:\n");
     print("-h or -help         Print this information and exit.\n");
     print("-version            Print version information and exit.\n");
-    print("-interval=N         Seconds between each printout of repeated monitoring.\n");
+    print("-interval=N         Invoke continuous monitoring by specifying the number of seconds\n");
+	print("                    between each summary of the run status.\n");
+    print("                    Without option -interval, continuous monitoring is turned off.\n");
     print("\n");
     exit;
 }

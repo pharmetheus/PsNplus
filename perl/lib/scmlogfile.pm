@@ -273,7 +273,8 @@ sub get_summary_string
 
 	my $text_matrix = get_text_formatted_matrix(as_R => $as_R,
 												matrix => $matrix,
-												header => $header);
+												header => $header,
+												decimals => $decimals);
 		
 	my $table =text_matrix_to_string(as_R => $as_R,
 									 text_matrix => $text_matrix,
