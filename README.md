@@ -28,15 +28,9 @@ When you use the static method, PsN does not have to be in your path for PsNplus
 
 ## Getting started with PsNplus tools
 
-1. For help on scmreport, run
-```
-scmreport -help
-```
-2. For help on monitor, run
-```
-monitor -help
-```
-3. For help on scmplus, see the [scmplus userguide](perl/doc/scmplusUserguide.pdf).
+1. For help on scmreport, see the [scmreport userguide](perl/doc/scmreportUserguide.pdf).
+2. For help on monitor, see the [monitor userguide](perl/doc/monitorUserguide.pdf).
+3. For help on scmplus, see the [scmplus userguide](perl/doc/scmplusUserguide.pdf) and the [scmplus PAGE poster](https://www.page-meeting.org/default.asp?abstract=8429).
 
 ## Run information
 The version number of PsNplus and the full path to the executed script is printed in version_and_option_info.txt of each run directory, together with the version number of the PsN library used. File meta.yaml does not contain the PsNplus information.
