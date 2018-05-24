@@ -107,7 +107,7 @@ is($logstep->is_forward(),0,'detect backward');
 	"VWGT-1         OFV     584.15462   669.56839                                      -85.41377  >  -7.63000",
 	);
 
-@ans = ([1,2,0,0],[0,2,0,0],[1,2,0,0],[1,1,0,0],[0,1,0,0]);
+@ans = ([1,2,0,1],[0,2,0,1],[1,2,0,1],[1,1,0,0],[0,1,0,0]);
 
 for (my $i=0; $i< scalar(@lines); $i++){
 	my $hashref = $logstep->_parse_candidate(line => $lines[$i]);

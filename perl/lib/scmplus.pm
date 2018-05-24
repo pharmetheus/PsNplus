@@ -45,8 +45,8 @@ has 'dropped_relations' => ( is => 'rw', isa => 'HashRef', default => sub { {} }
 has 'scope_reduction_steps' => ( is => 'rw', isa => 'ArrayRef', default => sub { [1] } );
 has 'keep_covariance' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'keep_tables' => ( is => 'rw', isa => 'Bool', default => 0);  
-has 'maxevals' => ( is => 'rw', isa => 'Str');  
-has 'ctype4' => ( is => 'rw', isa => 'Bool', default => 0);  
+has 'maxevals' => ( is => 'rw', isa => 'Str', default => '1.2');  
+has 'ctype4' => ( is => 'rw', isa => 'Bool', default => 1);  
 has 'etas' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'ignore_no_sigl' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'tune_model' => ( is => 'rw', isa => 'Bool', default => 1);  

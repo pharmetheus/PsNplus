@@ -138,7 +138,7 @@ By default all \$TABLE will be deleted from the models.
 If option -keep\_tables is set, all \$TABLE will be kept.
 \nextopt
 \optdefault{maxevals}{number}
-Default not set. 
+Default 1.2 in scmplus. 
 If set to a decimal number, and the estimation method is classical,
 \$EST MAXEVALS will be set to that number times 
 the actual number of function evaluations in the base model,
@@ -150,7 +150,7 @@ If set to an integer equal to or larger than 9999 then this option
 will be ignored by scmplus and passed on to common\_options maxevals
 (see documentation for common options).
 \optname{ctype4}
-Default not set.
+Default set, unset with -no-ctype4.
 If -ctype4 is set, and a classical estimation method is used,
 scmplus will ensure CTYPE=4 is set in \$EST
 \nextopt

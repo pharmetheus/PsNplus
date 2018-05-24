@@ -85,19 +85,19 @@ is_deeply(\%need_options,{'logfile' =>'/home/kajsa/sandbox/demoPsNplus/scmplus_d
 						  'search_direction' => 'forward'}, 'found options');
 
 my ($active,$newforward) = monitor::get_active_scmdir(
-	basedir => '/PMX/Projects/Pharmetheus/PMX-SCM-PMX-1/perl/test/test_files/monitor',
+	basedir => '/PMX/Projects/Pharmetheus/PsNplus/perl/test/test_files/monitor',
 	is_asrscm => 0,
 	last_logged_modeldir => undef,
 	last_direction_forward => 0);
-is($active,'/PMX/Projects/Pharmetheus/PMX-SCM-PMX-1/perl/test/test_files/monitor','active scmdir');
+is($active,'/PMX/Projects/Pharmetheus/PsNplus/perl/test/test_files/monitor','active scmdir');
 is($newforward,0,'new forward 1');
 
 ($active,$newforward) = monitor::get_active_scmdir(
-	basedir => '/PMX/Projects/Pharmetheus/PMX-SCM-PMX-1/perl/test/test_files/monitor',
-	last_logged_modeldir => '/PMX/Projects/Pharmetheus/PMX-SCM-PMX-1/perl/test/test_files/monitor/m1',
+	basedir => '/PMX/Projects/Pharmetheus/PsNplus/perl/test/test_files/monitor',
+	last_logged_modeldir => '/PMX/Projects/Pharmetheus/PsNplus/perl/test/test_files/monitor/m1',
 	is_asrscm => 0,
 	last_direction_forward => 1);
-is($active,'/PMX/Projects/Pharmetheus/PMX-SCM-PMX-1/perl/test/test_files/monitor/scm_dir1','active scmdir 2');
+is($active,'/PMX/Projects/Pharmetheus/PsNplus/perl/test/test_files/monitor/scm_dir1','active scmdir 2');
 is($newforward,1,'new forward 2');
 
 

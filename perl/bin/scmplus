@@ -146,8 +146,7 @@ EOF
 $help_text{-ctype4} = <<'EOF';
       -ctype4
 
-    Default not set. If option -fast is set, the default changes to -ctype4 set.
-    Unset with -no-ctype4.
+    Default set. Unset with -no-ctype4.
     If ctype4 is set, and a classical estimation method is used, 
     scmplus will ensure CTYPE=4 is set in $EST
 EOF
@@ -189,7 +188,7 @@ EOF
 $help_text{-maxevals} = <<'EOF';
     -maxevals=1.2
 
-    Default not set. If option -fast is set, the default is changed to 1.2
+    Default 1.2
     If set to a decimal number, $EST MAXEVALS will be set to that number times 
     the actual number of function evaluations in the base model,
     rounded down to the nearest integer and capped at 9999. 

@@ -165,7 +165,7 @@ is_deeply($logfile->get_summary_matrix(),[
 			  ['Final included','WGT','V','2',undef,undef,undef,undef]],
 'logfile get summary gof ofv');
 
-is($logfile->get_report_string(ofv_table => 1,as_R => 1),'data.frame(stringsAsFactors = FALSE,
+is($logfile->get_report_string(ofv_table => 1,as_R => 1,decimals=>2),'data.frame(stringsAsFactors = FALSE,
 Step = c("Forward 1","Forward 2","Forward 3","Forward 4","Forward 5","Backward 1","Backward 2","Backward 3","Final included","Final included"),
 covariate = c("WGT","WGT","CV1","CV2",NA,"CV2","CV1",NA,"WGT","WGT"),
 parameter = c("V","CL","CL","V",NA,"V","CL",NA,"CL","V"),
