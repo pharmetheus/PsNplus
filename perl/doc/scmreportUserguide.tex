@@ -1,0 +1,194 @@
+\makeatletter
+\def\input@path{{/PMX/Projects/Pharmetheus/PMX-RRW-PMX-2/encore/LaTeX/}}
+\makeatother
+\documentclass[hideglossary,notoc,hidelof,hidelot,hideTheSignaturePage,hideLinkCurrent,hideloa,pdfLatex,noClient,notitle,hideConfidential]{PMXstyle-20170118kajsa4}
+
+%%% code for bug in section numbering titlesec version 2.10.1
+%%% https://tex.stackexchange.com/questions/299969/titlesec-loss-of-section-numbering-with-the-new-update-2016-03-15
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\ttlh@hang}{\parindent\z@}{\parindent\z@\leavevmode}{}{}
+\patchcmd{\ttlh@hang}{\noindent}{}{}{}
+\makeatother
+
+%%% Project information
+%\projectsubtitle{}
+\reference{PMX-SCM-PMX-1}
+\documentversion{1.0.0}
+\documentdate{\today}
+\confidential{}
+\documenttype{User documentation}
+\projecttitle{scmreport}
+\shortprojecttitle{scmreport} 
+\documentreference{scmreport}
+\pmtcontact{Kajsa Harling}
+\phonepmtcontact{+46 73 593 2055}
+\emailpmtcontact{kajsa.harling@pharmetheus.com}
+%% Pharmetheus document signer
+%\documentauthorA{Kajsa Harling}
+
+
+\newacronym{ASR}{ASR}{Adaptive Scope Reduction scm}
+\newcommand{\guidetoolname}{scmreport}
+
+\input{./optionformat.tex}
+\begin{document}
+\section{Summary}
+The scmreport script is used for summarizing the results of an scm or scmplus run.
+The examples below show output for an scmplus run.
+The output of scmreport is a summary of the contents of the scm log file. 
+NONMEM output files are not parsed. 
+
+\section{Output with default settings}
+\begin{verbatim}
+scmreport run11.scm
+\end{verbatim}
+{\tiny
+\begin{verbatim}
+Model            N_test    N_ok N_localmin N_failed StepSelected StepStashed StepReadded BackstepRemoved
+CLAGE-5               6       6          0        0       -           3           7               -
+CLCRCL-5              2       2          0        0       2           -           -               -
+CLDOSE-2              3       3          0        0       3           -           -               -
+CLQUAT-2              4       4          0        0       -           1           7               -
+CLRACE-2              4       4          0        0       4           -           -               3
+CLSEX-2               2       2          0        0       7           1           7               -
+KMAGE-5               4       4          0        0       -           1           7               -
+KMQUAT-2              4       4          0        0       -           1           7               -
+KMRACE-2              4       4          0        0       -           1           7               -
+KMSEX-2               4       4          0        0       -           1           7               -
+V1AGE-5               4       4          0        0       -           1           7               -
+V1DOSE-2              4       4          0        0       -           1           7               -
+V1QUAT-2              4       4          0        0       -           1           7               -
+V1RACE-2              8       8          0        0       -           5           7               -
+V1SEX-2               1       1          0        0       1           -           -               -
+V2AGE-5               4       4          0        0       -           1           7               -
+V2DOSE-2              7       7          0        0       -           4           7               -
+V2QUAT-2              5       5          0        0       5           -           -               2
+V2RACE-2              4       4          0        0       -           1           7               -
+V2SEX-2               5       5          0        0       -           2           7               -
+VMAGE-5               4       4          0        0       -           1           7               -
+VMQUAT-2              3       3          0        0       8           1           7               1
+VMRACE-2              4       4          0        0       -           1           7               -
+VMSEX-2               4       4          0        0       -           1           7               -
+\end{verbatim}
+}
+
+
+{\bfseries Model}\\
+The name of the model in the scm log file, which is composed of the parameter, covariate and state number.
+
+\input{reportcolumns.tex}
+
+\section{Output with option -ofv\_table}
+\begin{verbatim}
+scmreport run11.scm -ofv
+\end{verbatim}
+{\tiny
+\begin{verbatim}
+Step             covariate  parameter  state         BASEOFV          NEWOFV         OFVDROP  pvalue
+Forward 1              SEX         V1      2    -10610.81224    -10679.13889        68.32665    0.01
+Forward 2             CRCL         CL      5    -10679.13889    -10702.00697        22.86808    0.01
+Forward 3             DOSE         CL      2    -10702.00697    -10721.34202        19.33506    0.01
+Forward 4             RACE         CL      2    -10721.34202    -10736.86380        15.52178    0.01
+Forward 5             QUAT         V2      2    -10736.86380    -10744.14780         7.28400    0.01
+Forward 6                                                  -               -               -        
+Forward 7              SEX         CL      2    -10744.14780    -10809.78278        65.63498    0.01
+Forward 8             QUAT         VM      2    -10809.78278    -10816.90670         7.12392    0.01
+Forward 9                                                  -               -               -        
+Backward 1            QUAT         VM      1    -10816.90670    -10810.62442        -6.28228  0.0001
+Backward 2            QUAT         V2      1    -10810.62442    -10802.97823        -7.64619  0.0001
+Backward 3            RACE         CL      1    -10802.97823    -10782.58130       -20.39694  0.0001
+Backward 4                                                 -               -               -        
+Final included        CRCL         CL      5               -               -               -        
+Final included        DOSE         CL      2               -               -               -        
+Final included         SEX         CL      2               -               -               -        
+Final included         SEX         V1      2               -               -               -        
+\end{verbatim}
+}
+
+
+
+{\bfseries Step}\\
+The search direction and the step number in that direction. The last rows list the included relations
+at the end of the scm or scmplus run.
+
+{\bfseries covariate}\\
+The name of the covariate.
+
+{\bfseries parameter}\\
+The name of the parameter.
+
+{\bfseries state}\\
+The scm state number.
+
+{\bfseries BASEOFV}\\
+Base ofv as read from the scm log file for the step.
+
+{\bfseries NEWOFV}\\
+New ofv for the selected model as read from the scm log file for the step.
+
+{\bfseries OFVDROP}\\
+Drop between BASEOFV and NEWOFV as read from the scm log file.
+
+{\bfseries pvalue}\\
+The p-value cutoff for selecting/excluding a relation as read from the scm log file.
+
+\section{Input and options}
+
+\subsection{Required input}
+The name of an scm or scmplus run directory is a required argument.
+
+\subsection{Optional input}
+
+\begin{optionlist}
+\optname{ofv\_table}
+Show ofv etc for selected relations, instead of the default which is
+a summary of all tested relations.
+\nextopt
+\optdefault{decimals}{N}
+Only used in combination with option -ofv\_table.
+Number of decimals to display for OFV columns. Default is 5.
+\nextopt
+\optname{toR}
+Print results as data frame code. Default not set.
+\nextopt
+\optname{logfile}
+Name of scm logfile in the directory. 
+Default is the name of the logfile in
+version\_and\_option\_info.txt, 
+so normally this option is only needed if version\_and\_option\_info.txt is not present,
+or if the entire folder has been moved so that version\_and\_option\_info.txt cannot be used.
+\nextopt
+\optname{help}
+Print help text and exit.
+\nextopt
+\optname{version}
+Print version information and exit.
+\nextopt
+\end{optionlist}
+
+
+
+
+\end{document}
+
+
+{\tiny
+\begin{verbatim}
+MODEL            TEST     BASE OFV     NEW OFV         TEST OFV (DROP)    GOAL     dDF    SIGNIFICANT PVAL
+CLAPGR-2         PVAL    742.05105   721.58702             20.46402  >  18.30700   10        YES!  0.025157 
+CLWGT-2          PVAL    742.05105    FAILED                 FAILED  >   3.84150    1                    999
+VAPGR-2          PVAL    742.05105   726.38092             15.67013  >  18.30700   10              0.109470 
+VWGT-2           PVAL    742.05105    FAILED                 FAILED  >   3.84150    1                    999
+
+Parameter-covariate relation chosen in this forward step: CL-APGR-2
+CRITERION              PVAL < 0.05
+BASE_MODEL_OFV         742.05105
+CHOSEN_MODEL_OFV       721.58702
+Relations included after this step:
+CL      APGR-2  
+V       
+--------------------
+\end{verbatim}
+}
+

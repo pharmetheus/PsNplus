@@ -1,0 +1,30 @@
+{\bfseries N\_test}\\
+The number of times, i.e. in how many iterations, 
+the parameter-covariate relation has been tested.
+%fixme backward counted?
+
+{\bfseries N\_ok}\\
+How many times, out of N\_test, does the scm log file list an ofv that such that extended model
+has lower ofv than the base model?
+%fixme
+
+{\bfseries N\_localmin}\\
+How many times, out of N\_test, did the run end in a local minimum, i.e. the log file lists a
+higher ofv for the extended model than for the base model?
+
+{\bfseries N\_failed}\\
+How many times, out of N\_test, did the scm log file state that the model failed?
+
+{\bfseries StepSelected} \\
+In which forward step, if any, was the parameter-covariate relation selected?
+
+{\bfseries StepStashed} \\
+Only for scmplus: In which forward step, if any, was the parameter-covariate relation stashed, i.e. removed from the set of relations tested again?
+
+{\bfseries StepReadded} \\
+Only for scmplus: In which forward step, if any, was a previously stashed
+parameter-covariate relation retested?
+
+{\bfseries BackstepRemoved}\\ 
+Both for scm and scmplus: 
+In which backward step, if any, was a previously selected parameter-covariate relation removed?
