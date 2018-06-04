@@ -26,6 +26,13 @@ $psnlib = "/path/to/existing/psn/lib/directory";
 ```
 When you use the static method, PsN does not have to be in your path for PsNplus tools to work.
 
+## Testing the installation
+```
+cd /location/of/perl/test
+prove -r unit
+prove -r system
+```
+
 ## Getting started with PsNplus tools
 
 1. For help on scmreport, see the [scmreport userguide](perl/doc/scmreportUserguide.pdf).
