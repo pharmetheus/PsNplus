@@ -29,7 +29,7 @@ BEGIN
 	}
 	unshift @INC, $libpath;
 
-	my $psnlib = "/opt/psn/psn-4.7.0/PsN_4_7_0";
+	my $psnlib = "/opt/psn/PsN_4_9_0";
 	unless (-d $psnlib){
 		$psnlib = "/opt/PsN/PsN_4_4_8"; #niclasmac
 	}
