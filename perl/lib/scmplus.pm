@@ -50,6 +50,7 @@ has 'ctype4' => ( is => 'rw', isa => 'Bool', default => 1);
 has 'etas' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'ignore_no_sigl' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'tune_model' => ( is => 'rw', isa => 'Bool', default => 1);  
+has 'original_logit' => ( is => 'rw', isa => 'ArrayRef', default => sub { [] } );
 
 our $perform_scope_reduction='perform_scope_reduction';
 our $switch_to_backward='switch_to_backward';
@@ -305,18 +306,43 @@ sub setup
 			   )
 		);
 	
-
+    if (defined $self->scm()->logit and scalar(@{$self->scm()->logit()})>0){
+		push(@{$self->original_logit()},@{$self->scm()->logit()});
+	}
+	
 	$self->ofv_backward($self->scm()->ofv_backward);
 	if (defined $self->scm()->p_backward){
 		$self->p_backward($self->scm()->p_backward);
 	}else{
-		$self->p_backward($self->scm()-> p_value());
+		$self->p_backward($self->scm()->p_value());
 	}
 	$self->p_forward($self->scm()->p_value());
 
 }
 
+sub get_internal_logit{
+	my %parm = validated_hash(\@_,
+							  original_logit => {isa => 'ArrayRef', optional => 0},
+							  test_relations => {isa => 'HashRef', optional => 0}
+		);
+	my $original_logit = $parm{'original_logit'};
+	my $test_relations = $parm{'test_relations'};
 
+	my @internal_logit = ();
+	my $relation_hash = {};
+	
+    if (scalar(@{$original_logit})>0){
+		foreach my $par ( sort keys %{$test_relations} ){
+			$relation_hash->{$par}=1;
+		}
+        foreach my $par (@{$original_logit}){
+            if (defined $relation_hash->{$par}){
+				push(@internal_logit,$par);
+			}
+        }
+    }
+	return \@internal_logit;
+}
 
 sub get_internal_scm{
 	my %parm = validated_hash(\@_,
@@ -330,7 +356,8 @@ sub get_internal_scm{
 							  both_directions => {isa => 'Bool',optional => 0},
 							  max_steps => {isa => 'Any'},
 							  step_number => {isa => 'Int', optional=>0},
-							  initial_estimates_model => {isa => 'model'}
+							  initial_estimates_model => {isa => 'model'},
+							  internal_logit => {isa => 'ArrayRef', optional => 0}
 		);
 	my $oldscm = $parm{'oldscm'};
 	my $test_relations = $parm{'test_relations'};
@@ -343,13 +370,13 @@ sub get_internal_scm{
 	my $max_steps = $parm{'max_steps'};
 	my $step_number = $parm{'step_number'};
 	my $initial_estimates_model = $parm{'initial_estimates_model'};
+	my $internal_logit = $parm{'internal_logit'};
 	
 	my $model_number=1;
 
 	unless (-d $finaldir) {
 		mkdir ($finaldir);
 	}
-
 	
 	return tool::scm ->new( %{common_options::restore_options(@common_options::tool_options)},
 								 gof                    => $oldscm -> gof(),
@@ -386,7 +413,7 @@ sub get_internal_scm{
 								 base_criteria_values => $oldscm -> base_criteria_values, #when regular scm returns then this is updated $new_base_crit_val_ref 
 								 parent_tool_id       => $oldscm -> tool_id,
 								 top_tool             => 0,
-								 logit                => $oldscm->logit(),
+								 logit                => $internal_logit,
 								 linearize                 => $oldscm->linearize,
 								 foce                 => $oldscm->foce,
 								 second_order         => $oldscm->second_order,
@@ -767,7 +794,9 @@ sub setup_next_scm{
 												search_direction => 'forward',
 												max_steps => $self->max_scm_depth,
 												step_number => 2, 
-												initial_estimates_model => get_initial_estimates_model(oldscm => $oldscm)
+												initial_estimates_model => get_initial_estimates_model(oldscm => $oldscm),
+												internal_logit => get_internal_logit ('original_logit' => $self->original_logit(),
+																					  'test_relations' => $reduced_test_relations)
 				);
 			my $text = get_drop_text(drop_relations => $drop_relations);
 			if (defined $self->dropped()){
@@ -784,9 +813,10 @@ sub setup_next_scm{
 			my ($dir,$finaldir) = get_scmdir_and_finaldir(stepnum => $next_stepnumber,
 														  tag => 'readded_forward',
 														  scm_topdir => $self->scm_top_directory);
-				
+
+			my $readded_test_relations = $self->get_readded_test_relations();
 			my $internal_scm = get_internal_scm(oldscm => $oldscm,
-												test_relations => $self->get_readded_test_relations(),
+												test_relations => $readded_test_relations,
 												relations => $self->get_readded_relations(),
 												finaldir => $finaldir,
 												dir => $dir,
@@ -795,7 +825,10 @@ sub setup_next_scm{
 												p_value =>$self->p_forward, 
 												search_direction => 'forward',
 												initial_estimates_model => get_initial_estimates_model(oldscm => $oldscm),
-												max_steps => $self->max_scm_depth());
+												max_steps => $self->max_scm_depth(),
+												internal_logit => get_internal_logit ('original_logit' => $self->original_logit(),
+																					  'test_relations' => $readded_test_relations)
+				);
 
 			my $text = get_included_text(included_relations => $self->scm->included_relations);
 			$message .= "Included relations so far: ".$text."\n";
@@ -811,9 +844,10 @@ sub setup_next_scm{
 			my ($dir,$finaldir) = get_scmdir_and_finaldir(stepnum => $next_stepnumber,
 														  tag => 'backward',
 														  scm_topdir => $self->scm_top_directory);
-			
+
+			my $backward_test_relations = ($self->readded_stashed() ? $self->original_test_relations() : $oldscm -> test_relations);
 			my $internal_scm = get_internal_scm(oldscm => $oldscm,
-												test_relations => ($self->readded_stashed() ? $self->original_test_relations() : $oldscm -> test_relations),
+												test_relations => $backward_test_relations,
 												relations => ($self->readded_stashed() ? $self->original_relations() : $oldscm -> relations),
 												finaldir => $finaldir,
 												dir => $dir,
@@ -822,7 +856,10 @@ sub setup_next_scm{
 												p_value => $self->p_backward(), 
 												search_direction => 'backward',
 												initial_estimates_model => get_initial_estimates_model(oldscm => $oldscm),
-												max_steps => $self->max_scm_depth());
+												max_steps => $self->max_scm_depth(),
+												internal_logit => get_internal_logit ('original_logit' => $self->original_logit(),
+																					  'test_relations' => $backward_test_relations)
+				);
 			
 			$message .= "Starting scmplus backward search";
 			$self->scm($internal_scm);
@@ -855,7 +892,10 @@ sub setup_next_scm{
 												p_value => $oldscm->p_value(), 
 												search_direction => $oldscm->search_direction(),
 												initial_estimates_model => get_initial_estimates_model(oldscm => $oldscm),
-												max_steps => $self->max_scm_depth());
+												max_steps => $self->max_scm_depth(),
+												internal_logit => get_internal_logit ('original_logit' => $self->original_logit(),
+																					  'test_relations' => $oldscm -> test_relations)
+				);
 			
 			$self->scm($internal_scm);
 			

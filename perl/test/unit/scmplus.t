@@ -20,6 +20,13 @@ is_deeply(scmplus::parsed_scope_reduction_steps('none'),{'scope_reduction_steps'
 is_deeply(scmplus::parsed_scope_reduction_steps(undef),{},"scope reduction steps 4");
 dies_ok { scmplus::parsed_scope_reduction_steps('1,1,2')} "scope reduction steps not increasing";
 
+is_deeply(scmplus::get_internal_logit('original_logit' => ['BASE','KA'], 'test_relations' => {'CL'=> [1,2],'V'=>[3]}),
+		  [],"internal logit 1");
+is_deeply(scmplus::get_internal_logit('original_logit' => ['CL','BASE'], 'test_relations' => {'CL'=> [1,2],'BASE'=>[3]}),
+		  ['CL','BASE'],"internal logit 2");
+is_deeply(scmplus::get_internal_logit('original_logit' => ['CL','BASE'], 'test_relations' => {'CL'=> [1,2],'V'=>[3]}),
+		  ['CL'],"internal logit 3");
+
 my %options = ('some' => 'value');
 
 scmplus::set_common_defaults(options => \%options);
