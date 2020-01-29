@@ -45,7 +45,7 @@ has 'dropped_relations' => ( is => 'rw', isa => 'HashRef', default => sub { {} }
 has 'scope_reduction_steps' => ( is => 'rw', isa => 'ArrayRef', default => sub { [1] } );
 has 'keep_covariance' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'keep_tables' => ( is => 'rw', isa => 'Bool', default => 0);  
-has 'maxevals' => ( is => 'rw', isa => 'Str', default => '1.2');  
+has 'maxevals' => ( is => 'rw', isa => 'Str', default => '3.1');  
 has 'ctype4' => ( is => 'rw', isa => 'Bool', default => 1);  
 has 'etas' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'ignore_no_sigl' => ( is => 'rw', isa => 'Bool', default => 0);  
@@ -217,7 +217,7 @@ sub fast_defaults
 	my %fast_defaults=();
 	if (defined $fast){
 		if ($fast){
-			$fast_defaults{'maxevals'}='1.2';
+			$fast_defaults{'maxevals'}='3.1';
 			$fast_defaults{'ctype4'}=1;
 			$fast_defaults{'retest_stashed_relations'}=0;
 			$fast_defaults{'scope_reduction_steps'}=['all'];

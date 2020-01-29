@@ -24,14 +24,17 @@ $options{'maxevals'} = '1000';
 is(model_plus::set_specific_and_common_maxevals(options => \%options),'1000','handle maxevals small integer');
 is($options{'maxevals'},undef,'remove common maxevals small integer');
 
-$options{'maxevals'} = '1.2';
-is(model_plus::set_specific_and_common_maxevals(options => \%options),'1.2','handle maxevals decimal');
+$options{'maxevals'} = '2.5';
+is(model_plus::set_specific_and_common_maxevals(options => \%options),'2.5','handle maxevals decimal');
+$options{'maxevals'} = '3.1';
+is(model_plus::set_specific_and_common_maxevals(options => \%options),'3.1','handle maxevals decimal');
+
 is($options{'maxevals'},undef,'remove common maxevals decimal');
 
 
-is(model_plus::get_new_maxeval(specific_maxevals =>'1.2',reference_model_evaluations =>100),120,'get new maxevals 1');
+is(model_plus::get_new_maxeval(specific_maxevals =>'1.3',reference_model_evaluations =>100),130,'get new maxevals 1');
 is(model_plus::get_new_maxeval(specific_maxevals =>'12',reference_model_evaluations =>100),12,'get new maxevals 2');
-is(model_plus::get_new_maxeval(specific_maxevals =>'1.2',reference_model_evaluations =>undef),undef,'get new maxevals 3');
+is(model_plus::get_new_maxeval(specific_maxevals =>'1.5',reference_model_evaluations =>undef),undef,'get new maxevals 3');
 is(model_plus::get_new_maxeval(specific_maxevals =>undef,reference_model_evaluations =>100),undef,'get new maxevals 4');
 is(model_plus::get_new_maxeval(specific_maxevals =>'100.0',reference_model_evaluations =>100),9999,'get new maxevals 5');
 
@@ -58,16 +61,16 @@ my ($errors,$warnings,$information) =
 					 keep_tables => 0,
 					 ctype4 => 1,
 					 ignore_no_sigl => 0,
-					 maxevals => 1.2,
+					 maxevals => 3.1,
 					 reference_evaluations => 100);
 is($model->problems->[-1]->tables(),undef,'tune model remove table');
 is($model->problems->[-1]->covariances(),undef,'tune model remove cov');
-is($model->get_option_value(record_name => 'estimation',option_name =>'MAXEVALS'),120,'tune model maxeval');
+is($model->get_option_value(record_name => 'estimation',option_name =>'MAXEVALS'),310,'tune model maxeval');
 is($model->get_option_value(record_name => 'estimation',option_name =>'CTYPE'),4,'tune model ctype');
 
 is_deeply($errors,[],'tune model errors');
 is_deeply($warnings,[],'tune model warnings');
-is_deeply($information,['Set MAXEVALS=120','Set CTYPE=4',
+is_deeply($information,['Set MAXEVALS=310','Set CTYPE=4',
 						"Removing all \$COVARIANCE from the model",
 						"Removing all \$TABLE from the model",
 						"ADVAN1 is used and SIGL is not set in \$EST"],'tune model info');

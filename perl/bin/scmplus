@@ -165,7 +165,7 @@ $help_text{-fast} = <<'EOF';
     Default not set. 
     If -fast is set, the scmplus defaults for options -ctype4, -retest_stashed_relations,
     -scope_reduction_steps and -maxevals will change to -ctype4 set, 
-    -retest_stashed_relations unset, -scope_reduction_steps=all and -maxevals=1.2 
+    -retest_stashed_relations unset, -scope_reduction_steps=all and -maxevals=3.1 
     If any of those options are set individually, the individual setting will override the
     -fast defaults.
 EOF
@@ -186,9 +186,9 @@ EOF
 
 
 $help_text{-maxevals} = <<'EOF';
-    -maxevals=1.2
+    -maxevals=3.1
 
-    Default 1.2
+    Default 3.1
     If set to a decimal number, $EST MAXEVALS will be set to that number times 
     the actual number of function evaluations in the base model,
     rounded down to the nearest integer and capped at 9999. 

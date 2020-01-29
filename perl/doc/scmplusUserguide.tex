@@ -30,6 +30,7 @@
 
 \newacronym{ASR}{ASR}{Adaptive Scope Reduction scm}
 \newcommand{\guidetoolname}{scmplus}
+\newcommand{\maxevals}{3.1\xspace}
 
 \input{./optionformat.tex}
 \begin{document}
@@ -75,7 +76,7 @@ the forward inclusion phase will proceed as with the regular scm.
 \subsubsection{Limit the number of function evaluations}
 To avoid excessive
 iterations without improvement in OFV, the max no of function
-evaluations are limited (default to 1.2 times the function evaluations
+evaluations are limited (default to \maxevals times the function evaluations
 used in the base model). This feature is invoked with option -maxevals.
 \subsubsection{Only run NONMEM estimation step}
 By default, scmplus will drop \$COVARIANCE and \$TABLE from the model.
@@ -138,7 +139,7 @@ By default all \$TABLE will be deleted from the models.
 If option -keep\_tables is set, all \$TABLE will be kept.
 \nextopt
 \optdefault{maxevals}{number}
-Default 1.2 in scmplus. 
+Default \maxevals in scmplus. 
 If set to a decimal number, and the estimation method is classical,
 \$EST MAXEVALS will be set to that number times 
 the actual number of function evaluations in the base model,
@@ -164,7 +165,7 @@ If set, and SIGL is not set, a warning will be printed but scmplus will run.
 Default not set. 
 If -fast is set, the scmplus defaults for options -ctype4, -retest\_stashed\_relations,
 -scope\_reduction\_steps and -maxevals will change to -ctype4 set, 
--retest\_stashed\_relations unset, -scope\_reduction\_steps=all and -maxevals=1.2\\ 
+-retest\_stashed\_relations unset, -scope\_reduction\_steps=all and -maxevals=\maxevals\\ 
 If any of those options are set individually, the individual setting will override the
 -fast defaults.
 \nextopt
