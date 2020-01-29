@@ -16,7 +16,7 @@ our @EXPORT = qw(get_major_minor_nm_version get_command get_command_without_args
 
 #export from Test to not have to use Test More in .t-files: ok done_testing
 
-
+our $isCluster=0;
 # Setup an include path to the lib directory
 # First get the path of this module and split out the directory part
 # Then make it into an absolute path
@@ -31,7 +31,9 @@ BEGIN
 
 	my $psnlib = "/opt/psn/PsN_4_9_0";
 	unless (-d $psnlib){
-		$psnlib = "/opt/PsN/PsN_4_4_8"; #niclasmac
+		$psnlib = "/opt/psn/psn-4.8.1/PsN_4_8_1"; #cluster Jan 2020
+		$isCluster=1;
+#		$psnlib = "/opt/PsN/PsN_4_4_8"; #niclasmac
 	}
 	unshift @INC, $psnlib;
 }
@@ -140,6 +142,9 @@ sub get_command
 			$args .= ' -abort_on_fail ';
 		}
     }
+	if ($isCluster){
+		$args .= ' -no-run_on_slurm -threads=1 '
+	}
     my $command_line = $path . $command_name . $version . $args;
 
     return $command_line;
