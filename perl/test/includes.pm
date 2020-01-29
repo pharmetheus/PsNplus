@@ -71,6 +71,8 @@ if (defined $PsN::config and (defined $PsN::config-> {'_'}) and
 	defined ($PsN::config -> {'_'} -> {'PsN_test_tempdir'})){
 	#use tempdir from psn.conf instead of default
 	$tempdir = $PsN::config -> {'_'} -> {'PsN_test_tempdir'};
+}elsif ($isCluster){
+	$tempdir = '/PMX/Projects/Pharmetheus/PMX-SCM-PMX-1/tmp/'
 }
 
 
