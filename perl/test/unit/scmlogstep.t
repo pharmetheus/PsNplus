@@ -10,6 +10,8 @@ use Test::More;
 use scmlogstep;
 
 
+
+
 #ok( -e $file_dir," testfiledir exists");
 my $logstep = scmlogstep->new(directory => 'dummy');
 
@@ -19,7 +21,7 @@ my @lines=(
 "V1QUAT-2         PVAL -10610.81224-10612.05676              1.24453  >   6.63490    1              0.264600 "
 	);
 
-my @ans=([1,2,0,0,'-10610.81224-10679.13889'],[0,2,0,0,'-10610.81224-10612.05676']);
+my @ans=([1,2,0,0,'-10610.81224-10679.13889',1.39e-16],[0,2,0,0,'-10610.81224-10612.05676',0.264600]);
 for (my $i=0; $i< scalar(@lines); $i++){
 	my $hashref = $logstep->_parse_candidate(line => $lines[$i]);
 	cmp_float($hashref->{'SIGNIFICANT'},$ans[$i]->[0]," significant test $i");
@@ -31,6 +33,8 @@ for (my $i=0; $i< scalar(@lines); $i++){
 	}else{
 		is((not defined $hashref->{'merged_ofv'}),1," merged ofv test $i");
 	}
+	cmp_float($hashref->{'PVAL'},$ans[$i]->[5]," pval test $i merged ofv");
+
 }
 $logstep->add_candidate(line => $lines[0],parcov_lookup=> {});
 $logstep->add_candidate(line => $lines[1],parcov_lookup=> {});
@@ -56,7 +60,7 @@ $logstep->parse_header(header => 'MODEL            TEST     BASE OFV     NEW OFV
 "PHALBEST-5       PVAL 219210.90878    FAILED                 FAILED  >   6.63490    1                    999"
 	);
 
-@ans=([1,5,0,0,'219210.90878219167.36222'],[0,2,0,0,'219210.90878219206.01527'],[0,5,1,0,undef]);
+@ans=([1,5,0,0,'219210.90878219167.36222',4.14e-11],[0,2,0,0,'219210.90878219206.01527',0.026958],[0,5,1,0,undef,999]);
 for (my $i=0; $i< scalar(@lines); $i++){
 	my $hashref = $logstep->_parse_candidate(line => $lines[$i]);
 	cmp_float($hashref->{'SIGNIFICANT'},$ans[$i]->[0]," significant test $i");
@@ -68,6 +72,7 @@ for (my $i=0; $i< scalar(@lines); $i++){
 	}else{
 		is((not defined $hashref->{'merged_ofv'}),1," merged ofv test $i");
 	}
+	cmp_float($hashref->{'PVAL'},$ans[$i]->[5]," pval test $i merged ofv 2");
 }
 $logstep->add_candidate(line => $lines[0],parcov_lookup=> {});
 $logstep->add_candidate(line => $lines[1],parcov_lookup=> {});
@@ -92,11 +97,11 @@ is_deeply($logstep->posterior_included_relations(),[{'parameter' => 'PHA','covar
 
 $logstep = scmlogstep->new(directory => 'dummy');
 $logstep->parse_header(header => 'MODEL            TEST NAME     BASE VAL     NEW VAL         TEST VAL (DROP)    GOAL  SIGNIFICANT');
-is($logstep->is_pval(),0,'detect ofv');
+is($logstep->gof_is_pvalue(),0,'detect ofv');
 is($logstep->is_forward(),1,'detect forward');
 
 $logstep->parse_header(header => 'MODEL      TEST NAME    BASE VAL     NEW VAL                                   TEST VAL (DROP)      GOAL (IN)SIGNIFICANT');
-is($logstep->is_pval(),0,'detect ofv');
+is($logstep->gof_is_pvalue(),0,'detect ofv');
 is($logstep->is_forward(),0,'detect backward');
 
 @lines =(
@@ -119,11 +124,11 @@ for (my $i=0; $i< scalar(@lines); $i++){
 
 
 $logstep->parse_header(header => 'MODEL            TEST     BASE OFV     NEW OFV         TEST OFV (DROP)    GOAL     dDF  INSIGNIFICANT PVAL');
-is($logstep->is_pval(),1,'detect pval');
+is($logstep->gof_is_pvalue(),1,'detect pval');
 is($logstep->is_forward(),0,'detect backward');
 
 $logstep->parse_header(header => 'MODEL            TEST     BASE OFV     NEW OFV         TEST OFV (DROP)    GOAL     dDF    SIGNIFICANT PVAL');
-is($logstep->is_pval(),1,'detect pval');
+is($logstep->gof_is_pvalue(),1,'detect pval');
 is($logstep->is_forward(),1,'detect forward');
 
 # 99 is n-param-diff 0 and delta-ofv 0
@@ -140,7 +145,7 @@ is($logstep->is_forward(),1,'detect forward');
 	"CLXY-4          PVAL    618.00249   618.00300             -0.00051  >   3.84150    1                  9999"
 	);
 
-@ans = ([0,0.277220,2,0,0],[1,2.72e-09,2,0,0],[0,0.998580,3,0,0],[0,999,2,1,0],[0,999,2,1,0],[0,9999,4,0,1]);
+@ans = ([0,0.277220,2,0,0,9],[1,2.72e-09,2,0,0,1],[0,0.998580,3,0,0,1],[0,999,2,1,0,1],[0,999,2,1,0,1],[0,9999,4,0,1,1]);
 
 for (my $i=0; $i< scalar(@lines); $i++){
 	my $hashref = $logstep->_parse_candidate(line => $lines[$i]);
@@ -149,6 +154,7 @@ for (my $i=0; $i< scalar(@lines); $i++){
 	is($hashref->{'state'},$ans[$i]->[2]," state test $i");
 	is($hashref->{'failed'},$ans[$i]->[3]," failed test $i");
 	is($hashref->{'local_min'},$ans[$i]->[4]," local min test $i");
+	is($hashref->{'dDF'},$ans[$i]->[5]," dDF test $i");
 }
 
 $logstep->add_candidate(line => $lines[0], parcov_lookup => {'CLWGT'=>['CL','WGT'],'CLAPGR'=>['CL','APGR'],'VWGT'=>['V','WGT']});

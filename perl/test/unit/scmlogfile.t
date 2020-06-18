@@ -9,6 +9,8 @@ use includes; #file with paths to PsN packages
 use Test::More;
 use scmlogfile;
 
+my @ofvattributes = ('covariate','parameter','state','BASE OFV','NEW OFV','TEST OFV (DROP)');
+my @pvalattributes = (@ofvattributes,'dDF','PVAL','pvalue');
 
 my $logfile = scmlogfile->new(filename => $includes::testfiledir.'/forward_pheno.logf',
 							  test_relations => {'V' => ['WGT'],'CL' => ['WGT','APGR']});
@@ -81,13 +83,24 @@ is_deeply($logfile->steps->[8]->posterior_included_relations(),[{'parameter'=> '
 																{'parameter'=> 'V','covariate' =>'WGT','state' =>'2'}],
 		  'posterior relations 2');
 
-is_deeply($logfile->steps->[8]->get_summary(),[['Backward 1','CV1','CL','1','587.15896','590.06016','-2.90120','0.001']],'summary step 8');
-is_deeply($logfile->steps->[9]->get_summary(counter=> 3),[['Backward 3',undef,undef,undef,undef,undef,undef,undef]],'summary step 9');
+is_deeply($logfile->steps->[8]->get_summary(attributes => \@pvalattributes),[['Backward 1','CV1','CL','1','587.15896','590.06016','-2.90120','-1','0.088514','0.001']],
+		  'summary step 8');
 
-is_deeply($logfile->steps->[9]->get_summary(counter=> 3),[['Backward 3',undef,undef,undef,undef,undef,undef,undef]],'summary step 9');
-is_deeply($logfile->steps->[8]->get_summary(summarize_posterior => 1),
-		  [['Final included','WGT','CL','2',undef,undef,undef,undef],
-		   ['Final included','WGT','V','2',undef,undef,undef,undef]],'summary step 9 posterior');
+is_deeply($logfile->steps->[9]->get_summary(counter=> 3,attributes => \@pvalattributes),[['Backward 3',undef,undef,undef,undef,undef,undef,undef,undef,undef]],'summary step 9');
+#is_deeply($logfile->steps->[9]->get_summary(counter=> 3),[['Backward 3',undef,undef,undef,undef,undef,undef,undef]],'summary step 9');
+
+
+is_deeply($logfile->steps->[8]->get_summary(summarize_posterior => 1,attributes => \@pvalattributes),
+		  [['Final included','WGT','CL','2',undef,undef,undef,undef,undef,undef],
+		   ['Final included','WGT','V','2',undef,undef,undef,undef,undef,undef]],'summary step 9 posterior');
+
+$logfile->prepare_summarize_notchosen(final_index => 8,
+									 last_step_index => 9);
+
+
+is_deeply($logfile->steps->[9]->get_summary(summarize_posterior => 0,summarize_notchosen => 1,attributes => \@pvalattributes),
+		  [['Final included','WGT','CL','2','590.06016','629.27205','-39.21190','-1','3.80e-10',undef],
+		   ['Final included','WGT','V','2','590.06016','672.98298','-82.92282','-1','8.53e-20',undef]],'summary step 10 not chosen');
 
 is_deeply($logfile->get_statistics(),{
 	'CLAPGR'=>{ 2=> {'tested' => 6, 'ok' => 6, 'failed' => 0, 'local_min' => 0,'stash_step' => 0, 'retest_step' => 0,'chosen_step' => 0,'removed_backward_step' => 0}}, 
@@ -99,20 +112,34 @@ is_deeply($logfile->get_statistics(),{
 		  },'statistics 1 forward');
 
 
-is_deeply($logfile->get_summary_matrix(),[
-			  ['Forward 1','WGT','V','2','725.60200','629.27205','96.32995','0.4'],
-			  ['Forward 2','WGT','CL','2','629.27205','590.06016','39.21190','0.4'],
-			  ['Forward 3','CV1','CL','2','590.06016','587.15896','2.90120','0.4'],
-			  ['Forward 4','CV2','V','2','587.15896','584.15462','3.00434','0.4'],
-			  ['Forward 5','CVD1','V','2','584.15462','582.97276','1.18187','0.4'],
-			  ['Forward 6',undef,undef,undef,undef,undef,undef,undef], 
-			  ['Backward 1','CVD1','V','1','582.97276','584.15462','-1.18187','0.001'], 
-			  ['Backward 2','CV2','V','1','584.15462','587.15896','-3.00434','0.001'], 
-			  ['Backward 3','CV1','CL','1','587.15896','590.06016','-2.90120','0.001'],
-			  ['Backward 4',undef,undef,undef,undef,undef,undef,undef], 
-			  ['Final included','WGT','CL','2',undef,undef,undef,undef],
-			  ['Final included','WGT','V','2',undef,undef,undef,undef]],
+is_deeply($logfile->get_summary_matrix(attributes => \@pvalattributes),[
+			  ['Forward 1','WGT','V','2','725.60200','629.27205','96.32995','1','9.72e-23','0.4'],
+			  ['Forward 2','WGT','CL','2','629.27205','590.06016','39.21190','1','3.80e-10','0.4'],
+			  ['Forward 3','CV1','CL','2','590.06016','587.15896','2.90120','1','0.088514','0.4'],
+			  ['Forward 4','CV2','V','2','587.15896','584.15462','3.00434','1','0.083042','0.4'],
+			  ['Forward 5','CVD1','V','2','584.15462','582.97276','1.18187','1','0.276980','0.4'],
+			  ['Forward 6',undef,undef,undef,undef,undef,undef,undef,undef,undef], 
+			  ['Backward 1','CVD1','V','1','582.97276','584.15462','-1.18187','-1','0.276980','0.001'], 
+			  ['Backward 2','CV2','V','1','584.15462','587.15896','-3.00434','-1','0.083042','0.001'], 
+			  ['Backward 3','CV1','CL','1','587.15896','590.06016','-2.90120','-1','0.088514','0.001'],
+			  ['Backward 4',undef,undef,undef,undef,undef,undef,undef,undef,undef], 
+			  ['Final included','WGT','CL','2','590.06016','629.27205','-39.21190','-1','3.80e-10',undef],
+			  ['Final included','WGT','V','2','590.06016','672.98298','-82.92282','-1','8.53e-20',undef]],
 'logfile get summary');
+
+is($logfile->get_report_string(ofv_table => 1,as_R => 1,decimals=>2),'data.frame(stringsAsFactors = FALSE,
+Step = c("Forward 1","Forward 2","Forward 3","Forward 4","Forward 5","Forward 6","Backward 1","Backward 2","Backward 3","Backward 4","Final included","Final included"),
+covariate = c("WGT","WGT","CV1","CV2","CVD1",NA,"CVD1","CV2","CV1",NA,"WGT","WGT"),
+parameter = c("V","CL","CL","V","V",NA,"V","V","CL",NA,"CL","V"),
+state = c(2,2,2,2,2,NA,1,1,1,NA,2,2),
+BASEOFV = c(725.60,629.27,590.06,587.16,584.15,NA,582.97,584.15,587.16,NA,590.06,590.06),
+NEWOFV = c(629.27,590.06,587.16,584.15,582.97,NA,584.15,587.16,590.06,NA,629.27,672.98),
+OFVDROP = c(96.33,39.21,2.90,3.00,1.18,NA,-1.18,-3.00,-2.90,NA,-39.21,-82.92),
+dDF = c(1,1,1,1,1,NA,-1,-1,-1,NA,-1,-1),
+PVALrun = c(9.72e-23,3.80e-10,0.088514,0.083042,0.276980,NA,0.276980,0.083042,0.088514,NA,3.80e-10,8.53e-20),
+pvalue = c(0.4,0.4,0.4,0.4,0.4,NA,0.001,0.001,0.001,NA,NA,NA))
+','R string');
+
 
 #print $logfile->get_perl_statistics_string();
 
@@ -152,17 +179,17 @@ is_deeply($logfile->get_statistics(),{
 		  },'statistics gof ofv forward');
 
 
-is_deeply($logfile->get_summary_matrix(),[
-			  ['Forward 1','WGT','V','2','725.60200','629.27205','96.32995',undef],
-			  ['Forward 2','WGT','CL','2','629.27205','590.06016','39.21190',undef],
-			  ['Forward 3','CV1','CL','2','590.06016','587.15896','2.90120',undef],
-			  ['Forward 4','CV2','V','2','587.15896','584.15462','3.00434',undef],
-			  ['Forward 5',undef,undef,undef,undef,undef,undef,undef], 
-			  ['Backward 1','CV2','V','1','584.15462','587.15896','-3.00434',undef], 
-			  ['Backward 2','CV1','CL','1','587.15896','590.06016','-2.90120',undef],
-			  ['Backward 3',undef,undef,undef,undef,undef,undef,undef], 
-			  ['Final included','WGT','CL','2',undef,undef,undef,undef],
-			  ['Final included','WGT','V','2',undef,undef,undef,undef]],
+is_deeply($logfile->get_summary_matrix(attributes => \@ofvattributes),[
+			  ['Forward 1','WGT','V','2','725.60200','629.27205','96.32995'],
+			  ['Forward 2','WGT','CL','2','629.27205','590.06016','39.21190'],
+			  ['Forward 3','CV1','CL','2','590.06016','587.15896','2.90120'],
+			  ['Forward 4','CV2','V','2','587.15896','584.15462','3.00434'],
+			  ['Forward 5',undef,undef,undef,undef,undef,undef], 
+			  ['Backward 1','CV2','V','1','584.15462','587.15896','-3.00434'], 
+			  ['Backward 2','CV1','CL','1','587.15896','590.06016','-2.90120'],
+			  ['Backward 3',undef,undef,undef,undef,undef,undef], 
+			  ['Final included','WGT','CL','2','590.06016','629.27205','-39.21190'],
+			  ['Final included','WGT','V','2','590.06016','672.98298','-82.92282']],
 'logfile get summary gof ofv');
 
 is($logfile->get_report_string(ofv_table => 1,as_R => 1,decimals=>2),'data.frame(stringsAsFactors = FALSE,
@@ -170,10 +197,9 @@ Step = c("Forward 1","Forward 2","Forward 3","Forward 4","Forward 5","Backward 1
 covariate = c("WGT","WGT","CV1","CV2",NA,"CV2","CV1",NA,"WGT","WGT"),
 parameter = c("V","CL","CL","V",NA,"V","CL",NA,"CL","V"),
 state = c(2,2,2,2,NA,1,1,NA,2,2),
-BASEOFV = c(725.60,629.27,590.06,587.16,NA,584.15,587.16,NA,NA,NA),
-NEWOFV = c(629.27,590.06,587.16,584.15,NA,587.16,590.06,NA,NA,NA),
-OFVDROP = c(96.33,39.21,2.90,3.00,NA,-3.00,-2.90,NA,NA,NA),
-pvalue = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA))
+BASEOFV = c(725.60,629.27,590.06,587.16,NA,584.15,587.16,NA,590.06,590.06),
+NEWOFV = c(629.27,590.06,587.16,584.15,NA,587.16,590.06,NA,629.27,672.98),
+OFVDROP = c(96.33,39.21,2.90,3.00,NA,-3.00,-2.90,NA,-39.21,-82.92))
 ','R string');
 
 $logfile = scmlogfile->new(directory => $includes::testfiledir.'/backward_dir1',

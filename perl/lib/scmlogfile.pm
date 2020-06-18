@@ -16,6 +16,7 @@ has 'warnings' => ( is => 'rw', isa => 'Str', default => '' );
 has 'is_asrscm' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'have_forward' => ( is => 'rw', isa => 'Bool', default => 0);  
 has 'have_backward' => ( is => 'rw', isa => 'Bool', default => 0);  
+has 'gof_is_pvalue' => ( is => 'rw', isa => 'Bool', default => 1);  
 
 our $asrscmtag="adaptive scope reduction scm";
 our $nextbasefilename="scmplus_current_basedir.txt";
@@ -86,7 +87,9 @@ sub get_scm_header_and_format
 				  'pvalue' => ['pvalue', " %7s"],
 				  'BASE OFV' => ['BASEOFV'," %15s"],
 				  'NEW OFV' => ['NEWOFV'," %15s"],
-				  'TEST OFV (DROP)' => ['OFVDROP'," %15s"]);
+				  'TEST OFV (DROP)' => ['OFVDROP'," %15s"],
+				  'dDF'=> ['dDF'," %5s"],
+				  'PVAL' => ['PVALrun'," %10s"]);
 	
 	foreach my $attr (@{$attributes}){
 		if (defined $lookup{$attr}){
@@ -188,6 +191,8 @@ sub get_text_formatted_matrix
 				push(@{$formatted[-1]},format_step('as_R' => $as_R, 'stepnum' => $line->[$i]));
 			}elsif ($header->[$i] =~ /(ofv|OFV)/ ){
 				push(@{$formatted[-1]},format_ofv(as_R => $as_R, ofv =>$line->[$i], decimals => $decimals));
+			}elsif ($header->[$i] =~ /\b(PVALrun|PVAL)\b/ ){
+				push(@{$formatted[-1]},format_pval(as_R => $as_R, pval =>$line->[$i]));
 			}elsif (defined $line->[$i]){
 				push(@{$formatted[-1]},$line->[$i]);
 			}elsif ($as_R) {
@@ -241,34 +246,39 @@ sub get_report_string
 	}
 }
 
+sub get_attributes_array{
+	my $self = shift;
+
+	my $attributes = ['covariate','parameter','state','BASE OFV','NEW OFV','TEST OFV (DROP)'];
+
+	if ($self->gof_is_pvalue()){
+		push(@{$attributes},'dDF','PVAL','pvalue');
+	}
+	return $attributes;
+
+}
+
 sub get_summary_string
 {
 	my $self = shift;
 	my %parm = validated_hash(\@_,
 							  include_posterior => { isa => 'Bool', default => 1 },
-							  include_p_value => { isa => 'Bool', default => 1},
 							  as_R => { isa => 'Bool', default => 1},
-							  decimals => { isa => 'Int'},
-							  attributes => { isa => 'ArrayRef', default => ['covariate','parameter','state','BASE OFV','NEW OFV','TEST OFV (DROP)']},
+							  decimals => { isa => 'Int'}
 		);
     my $include_posterior = $parm{'include_posterior'};
-    my $include_p_value = $parm{'include_p_value'};
     my $as_R = $parm{'as_R'};
-    my $attributes = $parm{'attributes'};
 	my $decimals = $parm{'decimals'};
 
 	my $include_direction = 1;
 
+	my $attributes = $self->get_attributes_array();
+	
 	my $matrix = $self->get_summary_matrix(include_direction => $include_direction,
 										   include_posterior => $include_posterior,
-										   include_p_value => $include_p_value,
 										   attributes => $attributes);
 
-	my @output_attributes =@{$attributes};
-	if ($include_p_value){
-		push(@output_attributes,'pvalue');
-	}
-	my ($header,$formatstring) = get_scm_header_and_format(attributes => \@output_attributes,
+	my ($header,$formatstring) = get_scm_header_and_format(attributes => $attributes,
 														   firsthead => 'Step');
 
 	my $text_matrix = get_text_formatted_matrix(as_R => $as_R,
@@ -345,6 +355,31 @@ sub format_ofv
 		}
 	}else{
 		return sprintf("%.".$decimals."f",$ofv);
+	}
+}
+
+sub format_pval
+{
+	my %parm = validated_hash(\@_,
+							  as_R => { isa => 'Bool'},
+							  pval => { isa => 'Maybe[Str]'}
+		);
+	my $as_R = $parm{'as_R'};
+	my $pval = $parm{'pval'};
+	if (not defined $pval){
+		if ($as_R){
+			return 'NA';
+		}else{
+			return '-';
+		}
+#	}elsif (($pval == '999') or ($pval == '9999')){
+#		if ($as_R){
+#			return 'NA';
+#		}else{
+#			return '-';
+#		}
+	}else{
+		return $pval;
 	}
 }
 
@@ -666,12 +701,10 @@ sub get_summary_matrix
 	my %parm = validated_hash(\@_,
 							  include_direction => { isa => 'Bool', default => 1 },
 							  include_posterior => { isa => 'Bool', default => 1 },
-							  include_p_value => { isa => 'Bool', default => 1},
-							  attributes => { isa => 'ArrayRef', default => ['covariate','parameter','state','BASE OFV','NEW OFV','TEST OFV (DROP)']},
+							  attributes => { isa => 'ArrayRef'},
 		);
     my $include_direction = $parm{'include_direction'};
     my $include_posterior = $parm{'include_posterior'};
-    my $include_p_value = $parm{'include_p_value'};
     my $attributes = $parm{'attributes'};
 
 	my $counter = 0;
@@ -679,7 +712,9 @@ sub get_summary_matrix
 	my $final_index=0; #last step with any defined chosen_index
 
 	my @lines=();
-	for (my $index=0; $index < scalar(@{$self->steps()}); $index++){
+	my $last_step_index = scalar(@{$self->steps()}) -1;
+	
+	for (my $index=0; $index <= $last_step_index; $index++){
 		if ($self->steps()->[$index]->is_forward() == $old_direction_is_forward){
 			$counter++;
 		}else{
@@ -692,17 +727,56 @@ sub get_summary_matrix
 		push(@lines,@{$self->steps->[$index]->get_summary(counter=> $counter,
 														  include_direction => $include_direction,
 														  summarize_posterior => 0,
-														  attributes => $attributes,
-														  include_p_value => $include_p_value)});
+														  attributes => $attributes)});
 	}
 	if ($include_posterior){
-		push(@lines,@{$self->steps->[$final_index]->get_summary(include_direction => $include_direction,
-																attributes => $attributes,
-																summarize_posterior => 1,
-																include_p_value => $include_p_value)});
+		if ($self->steps()->[$last_step_index]->is_forward()){
+			push(@lines,@{$self->steps->[$final_index]->get_summary(include_direction => $include_direction,
+																	attributes => $attributes,
+																	summarize_posterior => 1)});
+		}else{
+			#Transfer information from next to last step to last step, if necessary
+			$self->prepare_summarize_notchosen(final_index => $final_index,
+											   last_step_index => $last_step_index);
+			push(@lines,@{$self->steps->[$last_step_index]->get_summary(include_direction => $include_direction,
+																	attributes => $attributes,
+																	summarize_posterior => 0,
+																	summarize_notchosen => 1)});
+		}
 
 	}
 	return \@lines;
+}
+
+sub prepare_summarize_notchosen
+{
+    my $self = shift;
+	my %parm = validated_hash(\@_,
+							  final_index => { isa => 'Int', optional => 0 },
+							  last_step_index => { isa => 'Int', optional => 0 },
+		);
+
+	my $final_index = $parm{'final_index'};
+	my $last_step_index = $parm{'last_step_index'};
+	return if ($self->steps()->[$last_step_index]->is_forward());
+	
+
+	my $is_prior = ($last_step_index == ($final_index+1));
+					
+	my $lookup = $self->steps->[$final_index]->get_posterior_parcov_lookup();
+	$self->steps->[$last_step_index]->update_parameter_covariate_from_prior(parcov_lookup => $lookup,
+																			is_prior => $is_prior);
+
+
+	if ($is_prior){
+		if((not defined $self->steps->[$last_step_index]->base_model_ofv) and
+		   (defined $self->steps->[$final_index]->chosen_model_ofv)){
+			#handle any merged ofv
+			$self->steps->[$last_step_index]->base_model_ofv($self->steps->[$final_index]->chosen_model_ofv());
+			$self->steps->[$last_step_index]->split_merged_ofv();
+		}
+	}
+	
 }
 
 sub get_dropped_relations
@@ -829,11 +903,14 @@ sub read_scmlogfile
 	  unless (defined $line){
 		  last; #reached EOF
 	  }
+	  
 	  if ($line =~ /^Taking a step forward in $asrscmtag after reducing scope with (\d+) relations :\s+(\S*)$/ ){
 		  $self->is_asrscm(1);
 		  if ($1 > 0){
 			  $self->update_stashed_relations(text => $2,add => 1);
 		  }
+	  }elsif($line =~ /^Using user-defined ofv change criteria/){
+		  $self->gof_is_pvalue(0)
 	  }elsif($line =~ /^Re-testing (\d+) relations after $asrscmtag reduced forward search :\s+(\S*)$/){
 		  $self->is_asrscm(1);
 		  if ($1 > 0){

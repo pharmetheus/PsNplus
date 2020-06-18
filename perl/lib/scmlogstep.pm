@@ -7,8 +7,8 @@ use MooseX::Params::Validate;
 has 'candidates' => ( is => 'rw', isa => 'ArrayRef', default => sub { [] } );
 has 'directory' => ( is => 'rw', isa => 'Str');  
 has 'is_forward' => ( is => 'rw', isa => 'Bool', default => 1);  
-has 'is_pval' => ( is => 'rw', isa => 'Bool', default => 0);  
-has 'p_value' => ( is => 'rw', isa => 'Num');  
+has 'gof_is_pvalue' => ( is => 'rw', isa => 'Bool', default => 1);  
+has 'p_value' => ( is => 'rw', isa => 'Num');  # threshold p_value
 has 'base_model_ofv' => ( is => 'rw', isa => 'Str'); #we use it in pattern matching  
 has 'chosen_model_ofv' => ( is => 'rw', isa => 'Num'); 
 has 'chosen_index' => ( is => 'rw', isa => 'Int');  
@@ -31,7 +31,6 @@ sub split_merged_ofv
 			$self->candidates->[$i]->{'merged_ofv'} = undef;
 		}
 	}
-	
 }
 
 sub add_posterior
@@ -54,6 +53,51 @@ sub add_posterior
 
 }
 
+sub get_posterior_parcov_lookup
+{
+	my $self = shift;
+
+	my %hash=();
+	foreach my $posterior (@{$self->posterior_included_relations}){
+		my $parameter = $posterior->{'parameter'};
+		my $covariate = $posterior->{'covariate'};
+		if (defined $hash{$parameter.$covariate}){
+			#two instances of same parameter covariate, different state
+			#ambiguous state due to parallel states. Set state to undef
+			$hash{$parameter.$covariate} = [$parameter,$covariate,undef];
+		}else{
+			$hash{$parameter.$covariate} = [$parameter,$covariate,$posterior->{'state'}];
+		}
+	}	
+
+	return \%hash;
+}
+
+sub update_parameter_covariate_from_prior
+{
+	my $self = shift;
+	my %parm = validated_hash(\@_,
+							  parcov_lookup => { isa => 'HashRef' },
+							  is_prior => { isa => 'Bool' }
+	);
+	my $parcov_lookup = $parm{'parcov_lookup'};
+	my $is_prior = $parm{'is_prior'};
+	
+	for (my $i=0; $i < scalar(@{$self->candidates()}); $i++) {
+		next if (defined $self->candidates()->[$i]->{'parameter'});
+		next if (defined $self->candidates()->[$i]->{'covariate'});
+		my $parcov = $self->candidates()->[$i]->{'parcov'};
+		if ((defined $parcov) and (defined $parcov_lookup->{$parcov})){
+			$self->candidates()->[$i]->{'parameter'} = $parcov_lookup->{$parcov}->[0];
+			$self->candidates()->[$i]->{'covariate'} = $parcov_lookup->{$parcov}->[1];
+			if ($is_prior){
+				$self->candidates()->[$i]->{'prior_state'} = $parcov_lookup->{$parcov}->[2];
+			}
+		}
+	}
+
+	
+}
 
 sub summarize_candidate
 {
@@ -82,19 +126,34 @@ sub get_summary
 	my %parm = validated_hash(\@_,
 							  include_direction => { isa => 'Bool', default => 1 },
 							  summarize_posterior => { isa => 'Bool', default => 0 },
+							  summarize_notchosen => { isa => 'Bool', default => 0 },
 							  counter => { isa => 'Int', default => 1},
-							  include_p_value => { isa => 'Bool', default => 1},
-							  attributes => { isa => 'ArrayRef', default => ['covariate','parameter','state','BASE OFV','NEW OFV','TEST OFV (DROP)']},
+							  attributes => { isa => 'ArrayRef'}
 	);
     my $include_direction = $parm{'include_direction'};
     my $summarize_posterior = $parm{'summarize_posterior'};
+    my $summarize_notchosen = $parm{'summarize_notchosen'};
     my $counter = $parm{'counter'};
     my $attributes = $parm{'attributes'};
-    my $include_p_value = $parm{'include_p_value'};
 
+	my @local_attributes = @{$attributes};
+	
+	my $set_pvalue_index = -1;
+	if (not $summarize_posterior){
+		for (my $i=0; $i < scalar(@{$attributes}); $i++) {
+			if ($attributes->[$i] eq 'pvalue'){
+				$set_pvalue_index = $i;
+				last unless ($summarize_notchosen);
+			}
+			if ($summarize_notchosen and ($attributes->[$i] eq 'state')){
+				$local_attributes[$i]= 'prior_state';
+			}
+		}
+	}
+	
 	my @firstcolumns = ();		
 	if ($include_direction){
-		if ($summarize_posterior){
+		if ($summarize_posterior or $summarize_notchosen){
 			push(@firstcolumns,'Final included');
 		}else{
 			if ($self->is_forward){
@@ -104,22 +163,15 @@ sub get_summary
 			}
 		}
 	}
-	my @lastcolumns = ();		
-	if ($include_p_value){
-		if ($summarize_posterior){
-			push(@lastcolumns,undef);
-		}else{
-			if (defined $self->p_value){
-				push(@lastcolumns,$self->p_value());
-			}else{
-				push(@lastcolumns,undef);
-			}
-		}
-	}
 	
 	my @candidates = ();
 	if ($summarize_posterior){
 		push(@candidates,@{$self->posterior_included_relations});
+	}elsif ($summarize_notchosen){
+		for (my $i=0; $i < scalar(@{$self->candidates()}); $i++) {
+			next if ((defined $self->chosen_index()) and  ($i == $self->chosen_index()));
+			push(@candidates,$self->candidates()->[$i]);
+		}
 	}else{
 		if (defined $self->chosen_index){
 			push(@candidates,$self->candidates()->[$self->chosen_index()]);
@@ -132,8 +184,11 @@ sub get_summary
 	foreach my $candidate (@candidates){
 		push(@array,[]);
 		push(@{$array[-1]},@firstcolumns);
-		push(@{$array[-1]},@{summarize_candidate(candidate => $candidate,attributes => $attributes )});
-		push(@{$array[-1]},@lastcolumns);
+		my @candidate_row = @{summarize_candidate(candidate => $candidate,attributes => \@local_attributes )};
+		if ($set_pvalue_index >= 0){
+			$candidate_row[$set_pvalue_index] = $self->p_value();
+		}
+		push(@{$array[-1]},@candidate_row);
 	}
 		
 	return \@array;
@@ -246,7 +301,7 @@ sub parse_header
     my $header = $parm{'header'};
 
 	if ($header =~ /^MODEL\s+TEST\s+BASE\s+OFV\s+NEW\s+OFV\s+TEST\s+OFV/){
-		$self->is_pval(1);
+		$self->gof_is_pvalue(1);
 		$self->header(['MODEL','TEST','BASE OFV','NEW OFV','TEST OFV (DROP)','GOAL','dDF','SIGNIFICANT','PVAL']);
 		$self->column_index([0,1,2,3,4,6,7,-2,-1]);
 		if ($header =~ / INSIGNIFICANT /){
@@ -257,7 +312,7 @@ sub parse_header
 			die("unrecognized pval scmlog header $header");
 		}
 	}elsif($header =~ /^MODEL\s+TEST\s+NAME\s+BASE\s+VAL\s+NEW\s+VAL\s+/){
-		$self->is_pval(0);
+		$self->gof_is_pvalue(0);
 		$self->header(['MODEL','TEST NAME','BASE OFV','NEW OFV','TEST OFV (DROP)','GOAL','SIGNIFICANT']);
 		$self->column_index([0,1,2,3,4,6,7]);
 
@@ -299,8 +354,8 @@ sub _parse_candidate
 		$res{'local_min'} = 0;
 	}else{
 		$res{'failed'} = 0;
-		if (($self->is_pval and ($res{'PVAL'} == 9999 or $res{'PVAL'} == 999)) or
-			((not $self->is_pval) and (($self->is_forward and ($res{'TEST OFV (DROP)'}< 0))
+		if (($self->gof_is_pvalue and ($res{'PVAL'} == 9999 or $res{'PVAL'} == 999)) or
+			((not $self->gof_is_pvalue) and (($self->is_forward and ($res{'TEST OFV (DROP)'}< 0))
 									   or ((not $self->is_forward) and ($res{'TEST OFV (DROP)'} > 0))
 			 ))
 			)  {
