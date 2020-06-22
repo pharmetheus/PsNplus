@@ -41,3 +41,7 @@ prove -r system
 
 ## Run information
 The version number of PsNplus and the full path to the executed script is printed in version_and_option_info.txt of each run directory, together with the version number of the PsN library used. File meta.yaml does not contain the PsNplus information.
+
+## Change log:
+Version 1.0.7: Update scmreport to include dDF (delta-degrees-of-freedom) and PVALrun (actual p-value for choosing extended model) for each step, and also for final included relations.
+
