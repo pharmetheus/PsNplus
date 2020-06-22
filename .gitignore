@@ -52,6 +52,7 @@ knitr.sty
 *.glg
 *.glo
 *.gls
+*.glsdefs
 
 ## Office Temp Files
 ~$*

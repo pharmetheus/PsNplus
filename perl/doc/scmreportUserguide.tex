@@ -14,7 +14,7 @@
 %%% Project information
 %\projectsubtitle{}
 \reference{PMX-SCM-PMX-1}
-\documentversion{1.0.0}
+\documentversion{1.0.7}
 \documentdate{\today}
 \confidential{}
 \documenttype{User documentation}
@@ -46,30 +46,12 @@ scmreport run11.scm
 {\tiny
 \begin{verbatim}
 Model            N_test    N_ok N_localmin N_failed StepSelected StepStashed StepReadded BackstepRemoved
-CLAGE-5               6       6          0        0       -           3           7               -
-CLCRCL-5              2       2          0        0       2           -           -               -
-CLDOSE-2              3       3          0        0       3           -           -               -
-CLQUAT-2              4       4          0        0       -           1           7               -
-CLRACE-2              4       4          0        0       4           -           -               3
-CLSEX-2               2       2          0        0       7           1           7               -
-KMAGE-5               4       4          0        0       -           1           7               -
-KMQUAT-2              4       4          0        0       -           1           7               -
-KMRACE-2              4       4          0        0       -           1           7               -
-KMSEX-2               4       4          0        0       -           1           7               -
-V1AGE-5               4       4          0        0       -           1           7               -
-V1DOSE-2              4       4          0        0       -           1           7               -
-V1QUAT-2              4       4          0        0       -           1           7               -
-V1RACE-2              8       8          0        0       -           5           7               -
-V1SEX-2               1       1          0        0       1           -           -               -
-V2AGE-5               4       4          0        0       -           1           7               -
-V2DOSE-2              7       7          0        0       -           4           7               -
-V2QUAT-2              5       5          0        0       5           -           -               2
-V2RACE-2              4       4          0        0       -           1           7               -
-V2SEX-2               5       5          0        0       -           2           7               -
-VMAGE-5               4       4          0        0       -           1           7               -
-VMQUAT-2              3       3          0        0       8           1           7               1
-VMRACE-2              4       4          0        0       -           1           7               -
-VMSEX-2               4       4          0        0       -           1           7               -
+CLAPGR-2              4       2          2        0       -           1           3               -
+CLCV1-2               2       2          0        0       3           1           3               2
+CLWGT-2               2       2          0        0       2           -           -               3
+VCV2-2                3       3          0        0       4           1           3               1
+VCVD1-2               4       3          1        0       -           1           3               -
+VWGT-2                1       1          0        0       1           -           -               -
 \end{verbatim}
 }
 
@@ -79,30 +61,25 @@ The name of the model in the scm log file, which is composed of the parameter, c
 
 \input{reportcolumns.tex}
 
+\newpage
+
 \section{Output with option -ofv\_table}
 \begin{verbatim}
 scmreport run11.scm -ofv
 \end{verbatim}
 {\tiny
 \begin{verbatim}
-Step             covariate  parameter  state         BASEOFV          NEWOFV         OFVDROP  pvalue
-Forward 1              SEX         V1      2    -10610.81224    -10679.13889        68.32665    0.01
-Forward 2             CRCL         CL      5    -10679.13889    -10702.00697        22.86808    0.01
-Forward 3             DOSE         CL      2    -10702.00697    -10721.34202        19.33506    0.01
-Forward 4             RACE         CL      2    -10721.34202    -10736.86380        15.52178    0.01
-Forward 5             QUAT         V2      2    -10736.86380    -10744.14780         7.28400    0.01
-Forward 6                                                  -               -               -        
-Forward 7              SEX         CL      2    -10744.14780    -10809.78278        65.63498    0.01
-Forward 8             QUAT         VM      2    -10809.78278    -10816.90670         7.12392    0.01
-Forward 9                                                  -               -               -        
-Backward 1            QUAT         VM      1    -10816.90670    -10810.62442        -6.28228  0.0001
-Backward 2            QUAT         V2      1    -10810.62442    -10802.97823        -7.64619  0.0001
-Backward 3            RACE         CL      1    -10802.97823    -10782.58130       -20.39694  0.0001
-Backward 4                                                 -               -               -        
-Final included        CRCL         CL      5               -               -               -        
-Final included        DOSE         CL      2               -               -               -        
-Final included         SEX         CL      2               -               -               -        
-Final included         SEX         V1      2               -               -               -        
+Step             covariate  parameter  state         BASEOFV          NEWOFV         OFVDROP   dDF    PVALrun  pvalue
+Forward 1              WGT          V      2       725.60200       685.37770        40.22430     1   2.26e-10    0.05
+Forward 2              WGT         CL      2       685.37770       663.09532        22.28238     1   0.000002    0.05
+Forward 3              CV1         CL      2       663.09532       653.70237         9.39295     1   0.002178    0.05
+Forward 4              CV2          V      2       653.70237       647.68823         6.01414     1   0.014192    0.05
+Forward 5                                                  -               -               -                -        
+Backward 1             CV2          V      1       647.68823       648.16473        -0.47650    -1   0.490010    0.01
+Backward 2             CV1         CL      1       648.16473       643.42136         4.74337    -1       9999    0.01
+Backward 3             WGT         CL      1       643.42136       648.26975        -4.84839    -1   0.027672    0.01
+Backward 4                                                 -               -               -                -        
+Final included         WGT          V      2       648.26975       749.50873      -101.23898    -1   8.15e-24        
 \end{verbatim}
 }
 
@@ -130,8 +107,17 @@ New ofv for the selected model as read from the scm log file for the step.
 {\bfseries OFVDROP}\\
 Drop between BASEOFV and NEWOFV as read from the scm log file.
 
+{\bfseries dDF}\\
+The change in degrees of freedom when going from base model to new model.
+
+{\bfseries PVALrun}\\
+The actual p-value, computed based on change in ofv, for choosing the extended model.
+In a forward step the new model is the extended model and in a backward step the base model is the extended model.
+
 {\bfseries pvalue}\\
 The p-value cutoff for selecting/excluding a relation as read from the scm log file.
+
+\newpage
 
 \section{Input and options}
 
